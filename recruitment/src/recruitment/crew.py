@@ -2,6 +2,8 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool, ScrapeWebsiteTool
 from recruitment.tools.linkedin import LinkedInTool
+from recruitment.tools.task_output import progress_callback
+
 
 @CrewBase
 class RecruitmentCrew():
@@ -13,35 +15,37 @@ class RecruitmentCrew():
     def researcher(self) -> Agent:
         return Agent(
             config=self.agents_config['researcher'],
-						tools=[SerperDevTool(), ScrapeWebsiteTool(), LinkedInTool()],
+            tools=[SerperDevTool(), ScrapeWebsiteTool(),
+                   LinkedInTool(), progress_callback],
             allow_delegation=False,
-						verbose=True
+            verbose=True
         )
 
     @agent
     def matcher(self) -> Agent:
         return Agent(
             config=self.agents_config['matcher'],
-            tools=[SerperDevTool(), ScrapeWebsiteTool()],
+            tools=[SerperDevTool(), ScrapeWebsiteTool(), progress_callback],
             allow_delegation=False,
-						verbose=True
+            verbose=True
         )
 
     @agent
     def communicator(self) -> Agent:
         return Agent(
             config=self.agents_config['communicator'],
-            tools=[SerperDevTool(), ScrapeWebsiteTool()],
+            tools=[SerperDevTool(), ScrapeWebsiteTool(), progress_callback],
             allow_delegation=False,
-						verbose=True
+            verbose=True
         )
 
     @agent
     def reporter(self) -> Agent:
         return Agent(
             config=self.agents_config['reporter'],
+            tools=[progress_callback],
             allow_delegation=False,
-						verbose=True
+            verbose=True
         )
 
     @task
@@ -70,7 +74,8 @@ class RecruitmentCrew():
         return Task(
             config=self.tasks_config['report_candidates_task'],
             agent=self.reporter(),
-            context=[self.research_candidates_task(), self.match_and_score_candidates_task(), self.outreach_strategy_task()],
+            context=[self.research_candidates_task(
+            ), self.match_and_score_candidates_task(), self.outreach_strategy_task()],
         )
 
     @crew

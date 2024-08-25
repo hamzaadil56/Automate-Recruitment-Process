@@ -1,6 +1,7 @@
 import os
 import requests
 from crewai import Agent, Task, Crew, Process
+from crewai_tools import tool
 
 # Custom Tool to send data to API
 
@@ -10,52 +11,26 @@ class SendToAPI:
         self.api_endpoint = api_endpoint
 
     def __call__(self, data):
-        response = requests.post(self.api_endpoint, json=data)
+        response = requests.put(self.api_endpoint, json=data)
         return response.json()
 
 
 # Create an API sender tool
 api_sender_tool = SendToAPI(
-    api_endpoint="https://your-api-endpoint.com/update")
+    api_endpoint="http://127.0.0.1:8000/tasks")
 
 # Custom callback function to track progress
 
 
+@tool("Progress Callback Tool")
 def progress_callback(agent_name, task_description, progress, output):
+    """Tracks the progress of each agent. After completing the task, agent return the progress whether it is inprogress or completed."""
+
     data = {
-        "agent": agent_name,
-        "task": task_description,
+        "agent_name": agent_name,
+        "task_description": task_description,
         "progress": progress,
-        "output": output,
+        "report_candidates_task": output,
     }
     # Send progress to API
     api_sender_tool(data)
-
-
-# Creating a researcher agent with memory and progress tracking
-researcher = Agent(
-    role='Researcher',
-    goal='Research and compile data on {topic}',
-    memory=True,
-    # This callback will be used to track progress
-    progress_callback=progress_callback,
-)
-
-# Research task with tracking and callback
-research_task = Task(
-    description="Research the impact of AI in healthcare.",
-    expected_output="A detailed report on the impact of AI in healthcare.",
-    tools=[api_sender_tool],
-    agent=researcher,
-)
-
-# Form the crew and start the process
-crew = Crew(
-    agents=[researcher],
-    tasks=[research_task],
-    process=Process.sequential,
-)
-
-result = crew.kickoff(inputs={'topic': 'AI in healthcare'})
-
-print(result)
