@@ -20,9 +20,7 @@ class JobDescription(BaseModel):
 
 class AgentOutPut(BaseModel):
     agent_name: str = ""
-    task_description: str = ""
-    progress: str = ""
-    report_candidates_task: str = ""
+    status: str = ""
 
 
 # Create an instance of FastAPI

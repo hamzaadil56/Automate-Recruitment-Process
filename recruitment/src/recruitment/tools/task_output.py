@@ -23,14 +23,21 @@ api_sender_tool = SendToAPI(
 
 
 @tool("Progress Callback Tool")
-def progress_callback(agent_name, task_description, progress, output):
-    """Tracks the progress of each agent. After completing the task, agent return the progress whether it is inprogress or completed."""
+def progress_callback(agent_name, status):
+    """
+    Check which agent is running and update the status of the agent in the API.
+    Tracks the progress of each agent. 
+    After completing the task by an agent, this function returns the status, and the name of the agent.
+    This information is sent to the API using the API sender tool.
+    :param agent_name: The name of the agent
+    :param status: The status of the agent
+    :return: The status and the name of the agent
+    :rtype: dict
+    """
 
     data = {
         "agent_name": agent_name,
-        "task_description": task_description,
-        "progress": progress,
-        "report_candidates_task": output,
+        "status": status,
     }
     # Send progress to API
     api_sender_tool(data)
