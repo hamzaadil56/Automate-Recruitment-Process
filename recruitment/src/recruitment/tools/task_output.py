@@ -25,14 +25,21 @@ api_sender_tool = SendToAPI(
 @tool("Progress Callback Tool")
 def progress_callback(agent_name, status):
     """
-    Check which agent is running and update the status of the agent in the API.
-    Tracks the progress of each agent. 
-    After completing the task by an agent, this function returns the status, and the name of the agent.
-    This information is sent to the API using the API sender tool.
-    :param agent_name: The name of the agent
-    :param status: The status of the agent
-    :return: The status and the name of the agent
-    :rtype: dict
+    Checks which agent is running and return the status of the agent. The status must be either 'InProgress' or 'Completed'. If the agent starts its task, this tool will return the status of that agent as 'InProgress'. If the agent has completed its task, this tool will return the status as 'Completed'.
+
+    Args:
+        agent_name (str): The name of the agent.
+        status (str): The status of the agent.
+
+    Returns:
+        dict: A dictionary containing the agent_name and status.
+
+    Example:
+        >>> progress_callback('Agent1', 'InProgress')
+        {'agent_name': 'Agent1', 'status': 'InProgress'}
+
+
+
     """
 
     data = {

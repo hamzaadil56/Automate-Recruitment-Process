@@ -16,7 +16,7 @@ class RecruitmentCrew():
         return Agent(
             config=self.agents_config['researcher'],
             tools=[SerperDevTool(), ScrapeWebsiteTool(),
-                   LinkedInTool(), progress_callback],
+                   LinkedInTool()],
             allow_delegation=False,
             verbose=True
         )
@@ -25,7 +25,7 @@ class RecruitmentCrew():
     def matcher(self) -> Agent:
         return Agent(
             config=self.agents_config['matcher'],
-            tools=[SerperDevTool(), ScrapeWebsiteTool(), progress_callback],
+            tools=[SerperDevTool(), ScrapeWebsiteTool()],
             allow_delegation=False,
             verbose=True
         )
@@ -34,7 +34,7 @@ class RecruitmentCrew():
     def communicator(self) -> Agent:
         return Agent(
             config=self.agents_config['communicator'],
-            tools=[SerperDevTool(), ScrapeWebsiteTool(), progress_callback],
+            tools=[SerperDevTool(), ScrapeWebsiteTool()],
             allow_delegation=False,
             verbose=True
         )
@@ -43,7 +43,6 @@ class RecruitmentCrew():
     def reporter(self) -> Agent:
         return Agent(
             config=self.agents_config['reporter'],
-            tools=[progress_callback],
             allow_delegation=False,
             verbose=True
         )
@@ -52,21 +51,26 @@ class RecruitmentCrew():
     def research_candidates_task(self) -> Task:
         return Task(
             config=self.tasks_config['research_candidates_task'],
-            agent=self.researcher()
+            agent=self.researcher(),
+            tools=[progress_callback]
         )
 
     @task
     def match_and_score_candidates_task(self) -> Task:
         return Task(
             config=self.tasks_config['match_and_score_candidates_task'],
-            agent=self.matcher()
+            agent=self.matcher(),
+            tools=[progress_callback],
+
         )
 
     @task
     def outreach_strategy_task(self) -> Task:
         return Task(
             config=self.tasks_config['outreach_strategy_task'],
-            agent=self.communicator()
+            agent=self.communicator(),
+            tools=[progress_callback],
+
         )
 
     @task
@@ -74,6 +78,8 @@ class RecruitmentCrew():
         return Task(
             config=self.tasks_config['report_candidates_task'],
             agent=self.reporter(),
+            tools=[progress_callback],
+
             context=[self.research_candidates_task(
             ), self.match_and_score_candidates_task(), self.outreach_strategy_task()],
         )

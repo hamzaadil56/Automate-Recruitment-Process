@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 from .main import run
@@ -23,13 +24,29 @@ class AgentOutPut(BaseModel):
     status: str = ""
 
 
+class AgentResponse(BaseModel):
+    result: str = ""
+
+
 # Create an instance of FastAPI
 app = FastAPI()
+
+origins = [
+    "http://localhost:5173",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Initialize a global object to store the status of tasks
 task_status = TaskStatus()
 
 inital_agent = AgentOutPut()
+
+agents_response = AgentResponse()
 
 
 @app.get("/tasks", response_model=AgentOutPut)
@@ -45,10 +62,29 @@ async def start_agents(job_description: JobDescription):
     """
     Start the agents with the provided job description.
     """
-    asyncio.create_task(run(job_description.job_description))
-    # await run(job_description.job_description)
-    # Implement logic to start agents with the provided job description
-    return {"message": "Agents started successfully"}
+    asyncio.create_task(background_task(job_description.job_description))
+    return {"message": "Agents started successfully", "success": True}
+
+
+async def background_task(description: str):
+    # Simulate a long-running task
+    try:
+        result = await run(description)
+        # Update the global variable with the result when the task is complete
+        global agents_response
+
+        agents_response.result = result  # Store the result of the task
+    except Exception as e:
+        # Handle exceptions and update status accordingly
+        agents_response.status = f"Failed: {str(e)}"
+
+
+@app.get("/agents-response", response_model=AgentResponse)
+async def get_agents_response():
+    """
+    Retrieve the result of the background task once it is completed.
+    """
+    return agents_response
 
 
 @app.put("/tasks")
